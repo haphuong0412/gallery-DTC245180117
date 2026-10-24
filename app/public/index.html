@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ thống Thư viện Ảnh / Gallery - DTC245180117</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f8fafc; }
+    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- Header Navigation -->
+  <header class="sticky top-0 z-40 glass-card border-b border-slate-800/80 mb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600/30 flex items-center justify-center border border-indigo-500/30 text-indigo-400">
+          <i class="fa-solid fa-photo-film text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight text-white">Thư viện Ảnh Pro</h1>
+          <p class="text-xs text-indigo-400 font-medium">Mã sinh viên: <span class="text-slate-300 font-mono">DTC245180117</span></p>
+        </div>
+      </div>
+      <button onclick="document.getElementById('upload-section').scrollIntoView({behavior: 'smooth'})" 
+              class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all flex items-center shadow-lg shadow-indigo-600/20 active:scale-95">
+        <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Tải ảnh mới
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+    <!-- Upload Box & Statistics -->
+    <div id="upload-section" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 glass-card rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+        <div class="flex items-center space-x-2 mb-4">
+          <i class="fa-solid fa-circle-plus text-indigo-400 text-lg"></i>
+          <h2 class="text-lg font-bold text-white">Tải ảnh lên Server (MySQL)</h2>
+        </div>
+        
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Tên bức ảnh</label>
+              <input type="text" name="title" required placeholder="Nhập tên ảnh..." 
+                     class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Album / Phân loại</label>
+              <input type="text" name="category" required placeholder="Ví dụ: Phong cảnh, Công nghệ..." 
+                     class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Chọn tập tin ảnh</label>
+            <div class="relative border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer bg-slate-900/40">
+              <input type="file" name="image" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewFile(this)">
+              <div id="file-preview-zone" class="space-y-2">
+                <i class="fa-regular fa-image text-3xl text-slate-500"></i>
+                <p id="file-name-text" class="text-xs text-slate-400">Nhấp vào đây hoặc kéo thả ảnh (.jpg, .png, .webp)</p>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30">
+            <i class="fa-solid fa-paper-plane mr-2"></i> Tải ảnh lên ngay
+          </button>
+        </form>
+      </div>
+
+      <!-- Stats Card -->
+      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Trạng thái Thư viện</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between p-3.5 bg-slate-900/50 rounded-xl border border-slate-800">
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-images text-indigo-400 mr-2"></i>Tổng số ảnh</span>
+              <span id="stat-total" class="font-bold text-white font-mono text-base">0</span>
+            </div>
+            <div class="flex items-center justify-between p-3.5 bg-slate-900/50 rounded-xl border border-slate-800">
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-folder-tree text-sky-400 mr-2"></i>Danh mục Album</span>
+              <span id="stat-categories" class="font-bold text-white font-mono text-base">0</span>
+            </div>
+            <div class="flex items-center justify-between p-3.5 bg-slate-900/50 rounded-xl border border-slate-800">
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-server text-emerald-400 mr-2"></i>Backend Status</span>
+              <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">HTTPS Active</span>
+            </div>
+          </div>
+        </div>
+        <div class="pt-4 border-t border-slate-800 text-xs text-slate-500 text-center">
+          Docker Container Node.js + Nginx Proxy
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Search -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-4 rounded-2xl">
+      <div id="category-tabs" class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0">
+        <button onclick="filterCategory('All')" class="category-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white whitespace-nowrap">Tất cả</button>
+      </div>
+
+      <div class="relative w-full md:w-72">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Tìm tên ảnh hoặc phân loại..." 
+               class="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+      </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div>
+      <h2 class="text-xl font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-layer-group text-indigo-400 mr-2"></i> Danh sách Album Ảnh</h2>
+      <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="col-span-full py-16 text-center text-slate-500">
+          <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-indigo-400"></i>
+          <p class="text-sm">Đang tải dữ liệu từ CSDL MySQL...</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Lightbox Modal -->
+  <div id="lightbox" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <button onclick="closeLightbox()" class="absolute top-6 right-6 text-slate-400 hover:text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
+    <div class="max-w-4xl w-full text-center space-y-4">
+      <img id="lightbox-img" class="max-h-[70vh] mx-auto rounded-xl shadow-2xl object-contain border border-slate-800" src="" alt="">
+      <div>
+        <h3 id="lightbox-title" class="text-xl font-bold text-white"></h3>
+        <p id="lightbox-cat" class="text-xs text-indigo-400 mt-1"></p>
+      </div>
+      <div class="flex justify-center space-x-3">
+        <a id="lightbox-download" download class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center">
+          <i class="fa-solid fa-download mr-2"></i> Tải ảnh gốc
+        </a>
+        <button onclick="copyShareLink()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center border border-slate-700">
+          <i class="fa-solid fa-share-nodes mr-2"></i> Sao chép liên kết
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Photo Modal -->
+  <div id="editModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-2xl p-6 relative space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base"><i class="fa-solid fa-pen-to-square text-indigo-400 mr-2"></i> Sửa thông tin ảnh</h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="editForm" onsubmit="submitEdit(event)" class="space-y-4">
+        <input type="hidden" id="edit-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Tên bức ảnh</label>
+          <input type="text" id="edit-title" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Danh mục / Album</label>
+          <input type="text" id="edit-category" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl">Hủy</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30">Lưu thay đổi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let allPhotos = [];
+    let currentCategory = 'All';
+
+    function previewFile(input) {
+      const fileName = input.files[0]?.name;
+      if (fileName) {
+        document.getElementById('file-name-text').innerText = 'Đã chọn: ' + fileName;
+        document.getElementById('file-name-text').classList.add('text-indigo-400', 'font-semibold');
+      }
+    }
+
+    async function loadPhotos() {
+      try {
+        const res = await fetch('/photos');
+        allPhotos = await res.json();
+        renderCategories();
+        renderGallery();
+        updateStats();
+      } catch (err) {
+        console.error("Lỗi kết nối API:", err);
+      }
+    }
+
+    function renderCategories() {
+      const categories = ['All', ...new Set(allPhotos.map(p => p.category || 'Khác'))];
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = categories.map(cat => `
+        <button onclick="filterCategory('${cat}')" 
+                class="category-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${currentCategory === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}">
+          ${cat === 'All' ? 'Tất cả' : cat}
+        </button>
+      `).join('');
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      renderCategories();
+      renderGallery();
+    }
+
+    function handleSearch() {
+      renderGallery();
+    }
+
+    function renderGallery() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allPhotos.filter(p => {
+        const matchCat = currentCategory === 'All' || (p.category || 'Khác') === currentCategory;
+        const matchSearch = (p.title || '').toLowerCase().includes(searchTerm) || (p.category || '').toLowerCase().includes(searchTerm);
+        return matchCat && matchSearch;
+      });
+
+      const grid = document.getElementById('gallery-grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center text-slate-500">
+            <i class="fa-regular fa-folder-open text-4xl mb-3 text-slate-600"></i>
+            <p class="text-sm">Chưa có bức ảnh nào trong danh mục này.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(photo => {
+        const fileUrl = photo.filepath ? photo.filepath : `/uploads/${photo.filename}`;
+        return `
+          <div class="glass-card rounded-2xl overflow-hidden group hover:border-indigo-500/50 transition-all duration-300 shadow-xl flex flex-col justify-between">
+            <div class="relative overflow-hidden aspect-video bg-slate-900 cursor-pointer" onclick="openLightbox('${fileUrl}', '${photo.title}', '${photo.category || 'Khác'}')">
+              <img src="${fileUrl}" alt="${photo.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'">
+            </div>
+            <div class="p-4 space-y-3">
+              <div>
+                <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">${photo.category || 'Khác'}</span>
+                <h3 class="font-bold text-sm text-white truncate mt-1">${photo.title}</h3>
+              </div>
+              
+              <!-- Nút Thao tác: Sửa, Xóa, Tải về, Chia sẻ -->
+              <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <div class="flex space-x-2">
+                  <button onclick="openEditModal(${photo.id}, '${photo.title}', '${photo.category || 'Khác'}')" class="hover:text-amber-400 transition-colors" title="Sửa thông tin"><i class="fa-solid fa-pen"></i></button>
+                  <button onclick="deletePhoto(${photo.id})" class="hover:text-rose-500 transition-colors" title="Xóa ảnh"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div class="flex space-x-3">
+                  <button onclick="shareImage('${fileUrl}')" class="hover:text-indigo-400 transition-colors" title="Chia sẻ ảnh"><i class="fa-solid fa-share-nodes"></i></button>
+                  <a href="${fileUrl}" download class="hover:text-emerald-400 transition-colors" title="Tải về"><i class="fa-solid fa-download"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Modal Edit Functions
+    function openEditModal(id, title, category) {
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-title').value = title;
+      document.getElementById('edit-category').value = category;
+      document.getElementById('editModal').classList.remove('hidden');
+      document.getElementById('editModal').classList.add('flex');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+      document.getElementById('editModal').classList.remove('flex');
+    }
+
+    async function submitEdit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const title = document.getElementById('edit-title').value;
+      const category = document.getElementById('edit-category').value;
+
+      try {
+        const res = await fetch(`/api/photos/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, category })
+        });
+        if (res.ok) {
+          closeEditModal();
+          loadPhotos();
+        } else {
+          alert('Không thể cập nhật!');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Delete Photo
+    async function deletePhoto(id) {
+      if (confirm('Bạn có chắc chắn muốn xóa bức ảnh này khỏi CSDL MySQL?')) {
+        try {
+          const res = await fetch(`/api/photos/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            loadPhotos();
+          } else {
+            alert('Không thể xóa bức ảnh!');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+
+    function openLightbox(url, title, cat) {
+      document.getElementById('lightbox-img').src = url;
+      document.getElementById('lightbox-title').innerText = title;
+      document.getElementById('lightbox-cat').innerText = 'Danh mục: ' + cat;
+      document.getElementById('lightbox-download').href = url;
+      document.getElementById('lightbox').classList.remove('hidden');
+      document.getElementById('lightbox').classList.add('flex');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+      document.getElementById('lightbox').classList.remove('flex');
+    }
+
+    function copyShareLink() {
+      navigator.clipboard.writeText(document.getElementById('lightbox-img').src);
+      alert('Đã sao chép liên kết ảnh!');
+    }
+
+    function shareImage(filepath) {
+      const fullUrl = window.location.origin + filepath;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Thư viện Ảnh Pro',
+          text: 'Xem bức ảnh tuyệt đẹp này nhé!',
+          url: fullUrl,
+        }).catch(err => console.log('Đã hủy chia sẻ', err));
+      } else {
+        navigator.clipboard.writeText(fullUrl).then(() => {
+          alert('✅ Đã sao chép đường dẫn ảnh vào bộ nhớ tạm:\n' + fullUrl);
+        }).catch(err => console.error('Lỗi sao chép:', err));
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total').innerText = allPhotos.length;
+      const cats = new Set(allPhotos.map(p => p.category || 'Khác'));
+      document.getElementById('stat-categories').innerText = cats.size;
+    }
+
+    loadPhotos();
+  </script>
+</body>
+</html>
